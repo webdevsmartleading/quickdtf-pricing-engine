@@ -101,26 +101,9 @@ exports.handler = async function (event) {
         taxable: true,
       };
 
-      // If variant_id provided, attach it so Shopify shows the product image
-      if (d.variantId) {
-        lineItem.variant_id = d.variantId;
-        // When variant_id is set, price override still works
-        // but we need applied_discount instead of price for Draft Orders
-        delete lineItem.price;
-        lineItem.variant_id = d.variantId;
-        // Use applied_discount to set the actual price
-        const originalPrice = calc.basePrice;
-        const discountAmount = Math.round((originalPrice - unitPrice) * d.qty * 100) / 100;
-        if (discountAmount > 0) {
-          lineItem.applied_discount = {
-            description: `${Math.round(calc.discount * 100)}% bulk discount`,
-            value_type: 'fixed_amount',
-            value: discountAmount.toFixed(2),
-            amount: discountAmount.toFixed(2),
-            title: 'Bulk Discount'
-          };
-        }
-      }
+      // Note: we intentionally do NOT set variant_id
+      // Setting variant_id forces Shopify to use the variant's stored price
+      // instead of our custom calculated price — so we use title + price only
 
       return lineItem;
     });
