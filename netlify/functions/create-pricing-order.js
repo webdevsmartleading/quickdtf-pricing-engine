@@ -92,7 +92,7 @@ exports.handler = async function (event) {
       let unitPrice = calc.finalUnitPrice;
       if (d.preCut) unitPrice = Math.round((unitPrice + 0.19) * 100) / 100;
 
-      return {
+      const lineItem = {
         title,
         price: unitPrice.toFixed(2),
         quantity: d.qty,
@@ -100,6 +100,29 @@ exports.handler = async function (event) {
         requires_shipping: true,
         taxable: true,
       };
+
+      // If variant_id provided, attach it so Shopify shows the product image
+      if (d.variantId) {
+        lineItem.variant_id = d.variantId;
+        // When variant_id is set, price override still works
+        // but we need applied_discount instead of price for Draft Orders
+        delete lineItem.price;
+        lineItem.variant_id = d.variantId;
+        // Use applied_discount to set the actual price
+        const originalPrice = calc.basePrice;
+        const discountAmount = Math.round((originalPrice - unitPrice) * d.qty * 100) / 100;
+        if (discountAmount > 0) {
+          lineItem.applied_discount = {
+            description: `${Math.round(calc.discount * 100)}% bulk discount`,
+            value_type: 'fixed_amount',
+            value: discountAmount.toFixed(2),
+            amount: discountAmount.toFixed(2),
+            title: 'Bulk Discount'
+          };
+        }
+      }
+
+      return lineItem;
     });
 
     // Create Draft Order via Shopify Admin API
