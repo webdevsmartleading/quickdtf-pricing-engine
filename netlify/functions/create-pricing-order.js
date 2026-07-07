@@ -92,18 +92,26 @@ exports.handler = async function (event) {
       let unitPrice = calc.finalUnitPrice;
       if (d.preCut) unitPrice = Math.round((unitPrice + 0.19) * 100) / 100;
 
+      // Calculate total and use as single line item price to avoid unit rounding
+      // e.g. $0.0334/piece x 15 = $0.501, but toFixed(2) on unit = $0.03 x 15 = $0.45 (wrong)
+      // Solution: set price = total, quantity = 1 — exact amount, no rounding loss
+      const totalPrice = Math.round(unitPrice * d.qty * 100) / 100;
+
       const lineItem = {
-        title,
-        price: unitPrice.toFixed(2),
-        quantity: d.qty,
-        properties,
+        title: `${title} (x${d.qty})`,
+        price: totalPrice.toFixed(2),
+        quantity: 1,
+        properties: [
+          ...properties,
+          { name: 'Quantity', value: String(d.qty) },
+          { name: 'Unit Price', value: `$${unitPrice.toFixed(4)}/piece` },
+        ],
         requires_shipping: true,
         taxable: true,
       };
 
       // Note: we intentionally do NOT set variant_id
       // Setting variant_id forces Shopify to use the variant's stored price
-      // instead of our custom calculated price — so we use title + price only
 
       return lineItem;
     });
