@@ -36,9 +36,9 @@ function calcUnitPrice(widthIn, heightIn, productType, totalQtyAcrossDesigns) {
   const finalUnitPrice = basePrice * (1 - discount);
   return {
     sqIn: Math.round(sqIn * 100) / 100,
-    basePrice: Math.round(basePrice * 100) / 100,
+    basePrice: Math.round(basePrice * 10000) / 10000,
     discount,
-    finalUnitPrice: Math.round(finalUnitPrice * 100) / 100,
+    finalUnitPrice: Math.round(finalUnitPrice * 10000) / 10000, // 4 decimal precision to match frontend
   };
 }
 
