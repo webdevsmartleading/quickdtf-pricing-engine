@@ -4,8 +4,8 @@
 // frontend calculator widget. No Shopify order is created here.
 
 const RATE_PER_SQIN = {
-  dtf: 0.015,
-  uv_dtf: 0.06,
+  dtf: 0.03,
+  uv_dtf: 0.12,
 };
 
 const DISCOUNT_TIERS = [
