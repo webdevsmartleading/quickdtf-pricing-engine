@@ -10,8 +10,8 @@ const API_VERSION = '2025-01';
 
 // ---- Pricing Config ----
 const RATE_PER_SQIN = {
-  dtf: 0.015,
-  uv_dtf: 0.06, // 4x regular DTF rate
+  dtf: 0.03,
+  uv_dtf: 0.12, // 0.03 × 4
 };
 
 // Cumulative quantity discount tiers (matches client's request / Ninja model)
