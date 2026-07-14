@@ -1,0 +1,2424 @@
+{% if product.tags contains 'dtf-upload' and product.tags contains 'dtf-by-size' or product.tags contains 'dtf-upload' and product.tags contains 'uv-by-size' %}
+{% liquid
+  assign is_uv = false
+  if product.tags contains 'uv-dtf' or product.tags contains 'uv-by-size'
+    assign is_uv = true
+  endif
+
+  if is_uv
+    assign rate = 0.120
+    assign product_type = 'uv_dtf'
+  else
+    assign rate = 0.030
+    assign product_type = 'dtf'
+  endif
+%}
+
+<style>
+  /* Hide native variant picker, price display on calculator products only */
+  .qdtf-calc-active variant-picker,
+  .qdtf-calc-active .variant-picker,
+  .qdtf-calc-active [data-block-type="variant_picker"] {
+    display: none !important;
+  }
+
+  /* Price block — hide the default and restyle via our own display */
+  .qdtf-calc-active product-price {
+    display: none !important;
+  }
+</style>
+
+<script>
+  // Hide native variant picker and price on calculator products
+  (function() {
+    function hideNativeElements() {
+      // Hide variant picker (size dropdown)
+      document.querySelectorAll('variant-picker').forEach(function(el) {
+        el.style.setProperty('display', 'none', 'important');
+      });
+      // Hide native price block
+      document.querySelectorAll('product-price').forEach(function(el) {
+        el.style.setProperty('display', 'none', 'important');
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', hideNativeElements);
+    } else {
+      hideNativeElements();
+    }
+  })();
+</script>
+
+<div class="qdtf-calc" data-rate="{{ rate }}" data-product-type="{{ product_type }}" {{ block.shopify_attributes }}>
+
+  <!-- UPLOAD ZONE -->
+  <div class="qdtf-calc__upload-zone" id="qdtf-upload-zone">
+
+    <!-- Idle state -->
+    <div class="qdtf-calc__upload-idle" id="qdtf-upload-idle">
+      <!-- Drop zone UI on top, Uploadcare widget below it -->
+      <div class="qdtf-file-dropzone">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="48" height="48">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#1A56F0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="17 8 12 3 7 8" stroke="#1A56F0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="12" y1="3" x2="12" y2="15" stroke="#1A56F0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p class="qdtf-file-title">
+          {% if product.tags contains 'dtf-by-size' or product.tags contains 'uv-by-size' %}Upload Your Design{% elsif product.tags contains 'uv-dtf' %}Upload Your UV DTF Gang Sheet{% else %}Upload Your Gang Sheet{% endif %}
+          <span style="color:#DC2626;">*</span>
+        </p>
+        <p class="qdtf-file-hint">PNG only · Transparent bg · 300 DPI minimum</p>
+      </div>
+
+      <!-- Uploadcare widget -->
+      <script>
+        window.UPLOADCARE_PUBLIC_KEY = 'be9a69484bdbe62f5b29';
+        window.UPLOADCARE_LIVE = true;
+        window.UPLOADCARE_MANUAL_START = false;
+        (function() {
+          if (window.__qdtfUcLoaded) return;
+          window.__qdtfUcLoaded = true;
+          var s = document.createElement('script');
+          s.src = 'https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js';
+          s.charset = 'UTF-8';
+          s.onload = function() {
+            // Script loaded — now init the widget
+            window.__qdtfUcReady = true;
+          };
+          document.head.appendChild(s);
+        })();
+      </script>
+
+      <input
+        type="hidden"
+        role="uploadcare-uploader"
+        name="properties[Design File]"
+        id="qdtf-uc-input"
+        data-public-key="be9a69484bdbe62f5b29"
+        data-images-only="true"
+        data-preview-step="true"
+        data-clearable="true"
+      />
+    </div>
+
+    <!-- Done state -->
+    <div class="qdtf-calc__upload-done" id="qdtf-upload-done" style="display:none;">
+      <div class="qdtf-upload-card">
+        <!-- Thumbnail -->
+        <div class="qdtf-upload-card__thumb-wrap">
+          <img id="qdtf-thumb" src="" alt="Uploaded design" class="qdtf-upload-card__thumb">
+        </div>
+        <!-- Title -->
+        <span id="qdtf-filename" class="qdtf-upload-card__name">design.png</span>
+        <!-- Three action buttons -->
+        <div class="qdtf-upload-card__actions">
+          <button type="button" class="qdtf-upload-card__btn qdtf-upload-card__btn--view" id="qdtf-open-preview">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            View
+          </button>
+          <button type="button" class="qdtf-upload-card__btn qdtf-upload-card__btn--redetect" id="qdtf-redetect">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Re-detect
+          </button>
+          <button class="qdtf-upload-card__btn qdtf-upload-card__btn--remove" id="qdtf-remove-file" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CALCULATOR BODY (hidden until upload) -->
+  <div class="qdtf-calc__body" id="qdtf-calc-body" style="display:none;">
+
+
+
+    <!-- TABS -->
+    <div class="qdtf-calc__tabs">
+      <div class="qdtf-tab-container">
+        <input type="radio" name="qdtf-tab" id="qdtf-tab1" class="qdtf-tab qdtf-tab--1" checked>
+        <label class="qdtf-tab-label" for="qdtf-tab1">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Custom Size
+        </label>
+        <input type="radio" name="qdtf-tab" id="qdtf-tab2" class="qdtf-tab qdtf-tab--2">
+        <label class="qdtf-tab-label" for="qdtf-tab2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Popular Sizes
+        </label>
+        <div class="qdtf-indicator"></div>
+      </div>
+    </div>
+
+    <!-- TAB 1: CUSTOM SIZE -->
+    <div class="qdtf-calc__panel" id="qdtf-panel-custom">
+      <p class="qdtf-calc__auto-label">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A56F0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Auto-detected from your file. Adjust if needed.
+      </p>
+      <div class="qdtf-calc__size-inputs">
+        <div class="qdtf-calc__size-field">
+          <label class="qdtf-calc__size-label">Width (in)</label>
+          <div class="qdtf-calc__spinner">
+            <button type="button" class="qdtf-calc__spin-btn" data-target="qdtf-width" data-dir="-1">−</button>
+            <input type="number" id="qdtf-width" class="qdtf-calc__spin-input" value="4.00" min="0.5" max="22" step="0.25">
+            <button type="button" class="qdtf-calc__spin-btn" data-target="qdtf-width" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="qdtf-calc__size-mid">
+          <div class="qdtf-calc__size-x">×</div>
+          <button type="button" class="qdtf-calc__lock-btn" id="qdtf-calc-lock" title="Lock aspect ratio">
+            <svg id="qdtf-calc-lock-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </button>
+        </div>
+        <div class="qdtf-calc__size-field">
+          <label class="qdtf-calc__size-label">Height (in)</label>
+          <div class="qdtf-calc__spinner">
+            <button type="button" class="qdtf-calc__spin-btn" data-target="qdtf-height" data-dir="-1">−</button>
+            <input type="number" id="qdtf-height" class="qdtf-calc__spin-input" value="4.00" min="0.5" max="500" step="0.25">
+            <button type="button" class="qdtf-calc__spin-btn" data-target="qdtf-height" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="qdtf-calc__size-eq">
+          <span class="qdtf-calc__sqin" id="qdtf-sqin">16 sq in</span>
+          <span class="qdtf-calc__rate">× ${{ rate }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: POPULAR SIZES — Shopify variants in dropdown format -->
+    <div class="qdtf-calc__panel" id="qdtf-panel-popular" style="display:none;">
+      <label class="qdtf-calc__size-label" for="qdtf-popular-size">Select a size</label>
+      <div class="qdtf-calc__select-wrap">
+        <select id="qdtf-popular-size" class="qdtf-calc__select">
+          <option value="">— Choose a size —</option>
+          {% for variant in product.variants %}
+            {%- assign clean = variant.title | replace: '"', '' | replace: "'", '' -%}
+            {%- assign parts = clean | split: ' x ' -%}
+            {%- if parts.size == 2 -%}
+              {%- assign pw = parts[0] | strip | times: 1.0 -%}
+              {%- assign ph = parts[1] | strip | times: 1.0 -%}
+              <option
+                value="{{ variant.id }}"
+                data-w="{{ pw }}"
+                data-h="{{ ph }}"
+                data-price="{{ variant.price | divided_by: 100.0 }}"
+              >
+                {{ variant.title }}
+              </option>
+            {%- endif -%}
+          {% endfor %}
+        </select>
+        <svg class="qdtf-calc__select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+
+      <!-- Max print size display — appears after selecting a preset -->
+      <div class="qdtf-popular-size-adj" id="qdtf-popular-adj" style="display:none;">
+        <p class="qdtf-calc__auto-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A56F0" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Maximum print size for your image in this size.
+        </p>
+        <div class="qdtf-popular-maxsize">
+          <div class="qdtf-popular-maxsize__dim">
+            <span class="qdtf-popular-maxsize__val" id="qdtf-pop-maxw">—</span>
+            <span class="qdtf-popular-maxsize__unit">in W</span>
+          </div>
+          <div class="qdtf-popular-maxsize__x">×</div>
+          <div class="qdtf-popular-maxsize__dim">
+            <span class="qdtf-popular-maxsize__val" id="qdtf-pop-maxh">—</span>
+            <span class="qdtf-popular-maxsize__unit">in H</span>
+          </div>
+          <div class="qdtf-popular-maxsize__sqin">
+            = <span id="qdtf-pop-sqin">—</span> sq in
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QTY + PRICE ROW -->
+    <div class="qdtf-calc__qty-row">
+      <div class="qdtf-calc__qty-wrap">
+        <label class="qdtf-calc__size-label">Quantity</label>
+        <div class="qdtf-calc__spinner">
+          <button type="button" class="qdtf-calc__spin-btn" data-target="qdtf-qty" data-dir="-1">−</button>
+          <input type="number" id="qdtf-qty" class="qdtf-calc__spin-input" value="1" min="1" step="1">
+          <button type="button" class="qdtf-calc__spin-btn" data-target="qdtf-qty" data-dir="1">+</button>
+        </div>
+      </div>
+      <div class="qdtf-calc__unit-price">
+        <label class="qdtf-calc__size-label">Price per piece</label>
+        <span class="qdtf-calc__unit-val" id="qdtf-unit-price">$0.24</span>
+      </div>
+      <div class="qdtf-calc__total">
+        <label class="qdtf-calc__size-label">Total</label>
+        <span class="qdtf-calc__total-val" id="qdtf-total">$0.24</span>
+      </div>
+    </div>
+
+    <!-- BULK DISCOUNT TABLE -->
+    <div class="qdtf-calc__discount-wrap">
+      <div class="qdtf-calc__discount-header">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1A56F0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Buy More & Save — Cumulative Discounts
+      </div>
+      <table class="qdtf-calc__table">
+        <thead>
+          <tr>
+            <th>Total Qty</th>
+            <th>Price ea</th>
+            <th>Discount</th>
+          </tr>
+        </thead>
+        <tbody id="qdtf-discount-tbody">
+          <!-- filled by JS -->
+        </tbody>
+      </table>
+      <p class="qdtf-calc__next-tier" id="qdtf-next-tier"></p>
+    </div>
+
+    <!-- ADD TO CART -->
+    <button type="button" class="qdtf-calc__atc" id="qdtf-atc-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      Add to Cart — <span id="qdtf-atc-price">$0.24</span>
+    </button>
+
+    <p class="qdtf-calc__note">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      No minimums, setup or art fees. Final price adjusted to match your discount tier at checkout.
+    </p>
+
+  </div>
+</div>
+
+<style>
+  /* ── WRAPPER ── */
+  .qdtf-calc {
+    width: 100%;
+    font-family: var(--font-body--family, sans-serif);
+    color: #0A0A0A;
+  }
+
+  /* ── UPLOAD ZONE ── */
+  .qdtf-calc__upload-zone {
+    width: 100%;
+  }
+
+  .qdtf-calc__upload-idle {
+    width: 100%;
+  }
+
+  /* Drop zone decorative area */
+  .qdtf-file-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+    width: 100%;
+    background: #EEF3FF;
+    padding: 28px 24px 16px;
+    border-radius: 16px 16px 0 0;
+    border: 2px dashed #1A56F0;
+    border-bottom: none;
+    box-sizing: border-box;
+  }
+
+  .qdtf-file-title {
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 15px;
+    font-weight: 700;
+    color: #0A0A0A;
+    margin: 0;
+  }
+
+  .qdtf-file-hint {
+    font-size: 12px;
+    color: #888;
+    margin: 0;
+  }
+
+  /* Uploadcare widget sits below dropzone visually as one unit */
+  #qdtf-upload-idle {
+    border: 2px dashed #1A56F0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #EEF3FF;
+  }
+
+  #qdtf-upload-idle .qdtf-file-dropzone {
+    border: none;
+    border-radius: 0;
+    padding-bottom: 12px;
+  }
+
+  .qdtf-browse-btn {
+    background: #1A56F0;
+    color: #fff;
+    padding: 7px 20px;
+    border-radius: 10px;
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 6px;
+    transition: background 0.2s ease;
+    display: inline-block;
+  }
+
+  .qdtf-file-label:hover .qdtf-browse-btn {
+    background: #1440C0;
+  }
+
+  /* Uploadcare widget — styled to match QuickDTF design */
+  #qdtf-upload-idle .uploadcare--widget {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  #qdtf-upload-idle .uploadcare--widget__button_type_open,
+  #qdtf-upload-idle .uploadcare--widget__button {
+    background: #1A56F0 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 9px 24px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    font-family: var(--font-heading--family, sans-serif) !important;
+    transition: background 0.2s ease !important;
+    margin-bottom: 15px !important;
+  }
+
+  #qdtf-upload-idle .uploadcare--widget__button_type_open:hover,
+  #qdtf-upload-idle .uploadcare--widget__button:hover {
+    background: #1440C0 !important;
+  }
+
+  /* Any other buttons rendered inside the calculator block */
+  .qdtf-calc button:not(.qdtf-calc__spin-btn):not(.qdtf-calc__upload-remove):not(.qdtf-calc__atc) {
+    background: #1A56F0 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 8px !important;
+  }
+
+  /* Hide uploadcare file name display — we show our own */
+  #qdtf-upload-idle .uploadcare--widget__file-name,
+  #qdtf-upload-idle .uploadcare--widget__text {
+    display: none !important;
+  }
+
+  /* Upload card — shown after successful upload */
+  .qdtf-calc__upload-done { width: 100%; }
+
+  .qdtf-upload-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: #EEF3FF;
+    border: 1.5px solid #1A56F0;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .qdtf-upload-card__thumb-wrap {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: white;
+    border: 1.5px solid #C7D7FF;
+    background-image:
+      linear-gradient(45deg, #e8e8e8 25%, transparent 25%),
+      linear-gradient(-45deg, #e8e8e8 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #e8e8e8 75%),
+      linear-gradient(-45deg, transparent 75%, #e8e8e8 75%);
+    background-size: 10px 10px;
+    background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qdtf-upload-card__thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .qdtf-upload-card__name {
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    color: #0A0A0A;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .qdtf-upload-card__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .qdtf-upload-card__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1.5px solid;
+    background: #fff;
+  }
+
+  .qdtf-upload-card__btn--view {
+    border-color: #1A56F0;
+    color: #1A56F0;
+  }
+  .qdtf-upload-card__btn--view:hover { background: #EEF3FF; }
+
+  .qdtf-upload-card__btn--redetect {
+    border-color: #6366F1;
+    color: #6366F1;
+  }
+  .qdtf-upload-card__btn--redetect:hover { background: #EEF2FF; }
+
+  .qdtf-upload-card__btn--remove {
+    border-color: #DC2626;
+    color: #DC2626;
+  }
+  .qdtf-upload-card__btn--remove:hover { background: #FEF2F2; }
+
+
+
+  /* ── CALC BODY ── */
+  .qdtf-calc__body {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ── TABS ── */
+  .qdtf-tab-container {
+    position: relative;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 3px;
+    background: #E8EEFF;
+    border-radius: 11px;
+    width: 100%;
+  }
+
+  .qdtf-indicator {
+    width: 50%;
+    height: 34px;
+    background: #1A56F0;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    z-index: 1;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(26,86,240,0.3);
+    transition: left 0.22s cubic-bezier(.4,0,.2,1);
+  }
+
+  .qdtf-tab {
+    position: absolute;
+    opacity: 0;
+    width: 50%;
+    height: 34px;
+    z-index: 10;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  .qdtf-tab--1 { left: 3px; }
+  .qdtf-tab--2 { left: calc(50% + 3px); }
+
+  .qdtf-tab--1:checked ~ .qdtf-indicator { left: 3px; }
+  .qdtf-tab--2:checked ~ .qdtf-indicator { left: calc(50% + 0px); }
+
+  .qdtf-tab-label {
+    width: 50%;
+    height: 34px;
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    color: #1A56F0;
+    opacity: 0.6;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: color 0.2s ease, opacity 0.2s ease;
+    user-select: none;
+  }
+
+  .qdtf-tab--1:checked ~ .qdtf-tab-label:nth-of-type(1),
+  .qdtf-tab--2:checked ~ .qdtf-tab-label:nth-of-type(2) {
+    color: #FFFFFF;
+    opacity: 1;
+  }
+
+  /* Active label — target via JS class */
+  .qdtf-tab-label.active {
+    color: #FFFFFF !important;
+    opacity: 1 !important;
+  }
+
+  /* ── PANELS ── */
+  .qdtf-calc__panel {
+    background: #F7F9FF;
+    border: 1px solid #E0E7FF;
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .qdtf-calc__auto-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: #1A56F0;
+    margin: 0 0 14px;
+    font-weight: 500;
+  }
+
+  /* ── SIZE INPUTS ── */
+  .qdtf-calc__size-inputs {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .qdtf-calc__size-field { display: flex; flex-direction: column; gap: 6px; }
+
+  .qdtf-calc__size-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .qdtf-calc__size-mid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    align-self: flex-end;
+    margin-bottom: 4px;
+  }
+
+  .qdtf-calc__size-x {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1A56F0;
+  }
+
+  .qdtf-calc__lock-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1.5px solid #1A56F0;
+    background: #EEF3FF;
+    color: #1A56F0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    padding: 0;
+  }
+
+  .qdtf-calc__lock-btn:hover { background: #DBEAFE; }
+  .qdtf-calc__lock-btn.unlocked { border-color: #CCC; background: #F5F5F5; color: #AAA; }
+
+  .qdtf-calc__size-eq {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-self: flex-end;
+    margin-bottom: 4px;
+  }
+
+  .qdtf-calc__sqin {
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 14px;
+    font-weight: 700;
+    color: #1A56F0;
+  }
+
+  .qdtf-calc__rate {
+    font-size: 11px;
+    color: #888;
+  }
+
+  /* ── SPINNER ── */
+  .qdtf-calc__spinner {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #D1D9F0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    height: 38px;
+  }
+
+  .qdtf-calc__spin-btn {
+    width: 34px;
+    height: 100%;
+    background: none;
+    border: none;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1A56F0;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .qdtf-calc__spin-btn:hover { background: #EEF3FF; }
+
+  .qdtf-calc__spin-input {
+    width: 60px;
+    height: 100%;
+    border: none;
+    border-left: 1.5px solid #D1D9F0;
+    border-right: 1.5px solid #D1D9F0;
+    text-align: center;
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 14px;
+    font-weight: 700;
+    color: #0A0A0A;
+    outline: none;
+    -moz-appearance: textfield;
+    background: #fff;
+  }
+
+  .qdtf-calc__spin-input::-webkit-outer-spin-button,
+  .qdtf-calc__spin-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  /* ── SELECT ── */
+  .qdtf-calc__select-wrap {
+    position: relative;
+    margin-top: 4px;
+  }
+
+  .qdtf-calc__select {
+    width: 100%;
+    height: 42px;
+    padding: 0 36px 0 14px;
+    border: 1.5px solid #D1D9F0;
+    border-radius: 8px;
+    background: #fff;
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 14px;
+    font-weight: 600;
+    color: #0A0A0A;
+    appearance: none;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .qdtf-calc__select:focus { border-color: #1A56F0; }
+
+  .qdtf-calc__select-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #1A56F0;
+  }
+
+  /* ── QTY ROW ── */
+  .qdtf-calc__qty-row {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    gap: 16px;
+    align-items: end;
+    background: #fff;
+    border: 1.5px solid #E0E7FF;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  .qdtf-calc__qty-wrap { display: flex; flex-direction: column; gap: 4px; }
+
+  .qdtf-calc__unit-price,
+  .qdtf-calc__total {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: right;
+  }
+
+  .qdtf-calc__unit-val {
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 18px;
+    font-weight: 700;
+    color: #1A56F0;
+  }
+
+  .qdtf-calc__total-val {
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 22px;
+    font-weight: 800;
+    color: #0A0A0A;
+  }
+
+  /* ── DISCOUNT TABLE ── */
+  .qdtf-calc__discount-wrap {
+    border: 1.5px solid #E0E7FF;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .qdtf-calc__discount-header {
+    background: #EEF3FF;
+    padding: 10px 14px;
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 12px;
+    font-weight: 700;
+    color: #1A56F0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .qdtf-calc__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .qdtf-calc__table thead tr {
+    background: #F7F9FF;
+  }
+
+  .qdtf-calc__table th {
+    padding: 8px 14px;
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: left;
+    border-bottom: 1px solid #E0E7FF;
+  }
+
+  .qdtf-calc__table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #F0F0F0;
+    color: #0A0A0A;
+    font-weight: 500;
+  }
+
+  .qdtf-calc__table tr:last-child td { border-bottom: none; }
+
+  .qdtf-calc__table tr.active td {
+    background: #EEF3FF;
+    font-weight: 700;
+  }
+
+  .qdtf-calc__table tr.active td:first-child {
+    border-left: 3px solid #1A56F0;
+  }
+
+  .qdtf-calc__table .discount-badge {
+    display: inline-block;
+    background: #DCFCE7;
+    color: #166534;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+
+  .qdtf-calc__next-tier {
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #1A56F0;
+    font-weight: 600;
+    margin: 0;
+    background: #F7F9FF;
+    border-top: 1px solid #E0E7FF;
+    min-height: 36px;
+  }
+
+  /* ── ADD TO CART ── */
+  .qdtf-calc__btn-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .qdtf-calc__checkout-btn {
+    height: 52px;
+    padding: 0 20px;
+    background: #fff;
+    color: #1A56F0;
+    border: 2px solid #1A56F0;
+    border-radius: 12px;
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .qdtf-calc__checkout-btn:hover:not(:disabled) {
+    background: #1A56F0;
+    color: #fff;
+  }
+
+  .qdtf-calc__checkout-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #ccc;
+    color: #ccc;
+  }
+
+  .qdtf-calc__atc {
+    width: 100%;
+    height: 50px;
+    background: #1A56F0;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 0.2s ease, transform 0.15s ease;
+    box-shadow: 0 4px 14px rgba(26,86,240,0.3);
+  }
+
+  .qdtf-calc__atc:hover {
+    background: #1440C0;
+    transform: translateY(-1px);
+  }
+
+  .qdtf-calc__atc:active { transform: translateY(0); }
+
+  .qdtf-calc__atc:disabled {
+    background: #CBD5E1;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ── NOTE ── */
+  .qdtf-popular-maxsize {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #F7F9FF;
+    border: 1.5px solid #E0E7FF;
+    border-radius: 10px;
+    padding: 12px 16px;
+    flex-wrap: wrap;
+  }
+  .qdtf-popular-maxsize__dim {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .qdtf-popular-maxsize__val {
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 22px;
+    font-weight: 800;
+    color: #1A56F0;
+    line-height: 1;
+  }
+  .qdtf-popular-maxsize__unit {
+    font-size: 11px;
+    color: #888;
+    font-weight: 500;
+  }
+  .qdtf-popular-maxsize__x {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1A56F0;
+  }
+  .qdtf-popular-maxsize__sqin {
+    font-size: 13px;
+    color: #888;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .qdtf-popular-maxsize__sqin span {
+    font-weight: 700;
+    color: #0A0A0A;
+  }
+
+
+  /* ── Popular size preset buttons ── */
+  .qdtf-calc__presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .qdtf-calc__preset-btn {
+    padding: 7px 14px;
+    border: 1.5px solid #D1D9F0;
+    border-radius: 8px;
+    background: #fff;
+    font-family: var(--font-heading--family, sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+
+  .qdtf-calc__preset-btn:hover {
+    border-color: #1A56F0;
+    color: #1A56F0;
+    background: #EEF3FF;
+  }
+
+  .qdtf-calc__preset-btn.active {
+    border-color: #1A56F0;
+    background: #1A56F0;
+    color: #fff;
+  }
+
+  .qdtf-popular-size-adj {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #E0E7FF;
+    animation: qdtf-fadein 0.2s ease;
+  }
+
+  @keyframes qdtf-fadein {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .qdtf-calc__note {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    color: #888;
+    margin: 0;
+    text-align: center;
+    justify-content: center;
+  }
+
+
+  /* Native elements hidden via buy-buttons.liquid logic */
+
+  /* ── MOBILE ── */
+  @media screen and (max-width: 749px) {
+    .qdtf-calc__size-inputs { gap: 8px; }
+    .qdtf-calc__qty-row { grid-template-columns: auto 1fr; gap: 12px; }
+    .qdtf-calc__total { grid-column: span 2; text-align: left; }
+  }
+
+  /* ── PREVIEW MODAL ── */
+  #qdtf-preview-modal {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2147483647 !important;
+    display: none;
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  #qdtf-preview-modal.qdtf-modal--open {
+    display: flex !important;
+  }
+  .qdtf-modal__backdrop {
+    position: absolute !important;
+    inset: 0 !important;
+    background: rgba(0,0,0,0.8) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    cursor: pointer;
+  }
+  .qdtf-modal__box {
+    position: relative !important;
+    background: #ffffff !important;
+    border-radius: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-shadow: none !important;
+    animation: qdtfZoomIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes qdtfZoomIn {
+    from { opacity: 0; transform: scale(0.78); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .qdtf-modal__header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid #F0F0F0; background:#fff; flex-shrink:0; }
+  .qdtf-modal__title { font-family:var(--font-heading--family,sans-serif); font-size:16px; font-weight:700; color:#0A0A0A; display:flex; align-items:center; gap:8px; }
+  .qdtf-modal__close { width:34px; height:34px; border-radius:50%; background:#fff; border:1.5px solid #ddd; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#888; transition:background 0.15s,color 0.15s; }
+  .qdtf-modal__close:hover { background:#FEF2F2; color:#DC2626; }
+  .qdtf-modal__body { display:grid; grid-template-columns:1fr 280px; overflow:auto; flex:1; }
+  .qdtf-modal__preview-wrap { padding:28px; background:#F8F9FB; border-right:1px solid #eee; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+  /* Free transform canvas */
+  .qdtf-modal__canvas-wrap {
+    position: relative; flex: 1; display: flex;
+    align-items: center; justify-content: center;
+    overflow: hidden; width: 100%;
+  }
+  .qdtf-modal__canvas {
+    position: relative; display: inline-flex;
+    align-items: center; justify-content: center;
+    background-color: #fff;
+    background-image: linear-gradient(45deg,#e0e0e0 25%,transparent 25%),linear-gradient(-45deg,#e0e0e0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e0e0e0 75%),linear-gradient(-45deg,transparent 75%,#e0e0e0 75%);
+    background-size: 20px 20px; background-position: 0 0,0 10px,10px -10px,-10px 0;
+    border: 2px solid #1A56F0; border-radius: 8px;
+    overflow: visible; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    cursor: move; user-select: none;
+  }
+  .qdtf-modal__img { display: block; pointer-events: none; }
+  .qdtf-modal__canvas-label { position: absolute; bottom: -28px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #888; white-space: nowrap; }
+  .qdtf-resize-handle { position: absolute; width: 16px; height: 16px; background: #1A56F0; border: 2px solid #fff; border-radius: 50%; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+  .qdtf-resize-handle.nw { top:-8px; left:-8px; cursor:nw-resize; }
+  .qdtf-resize-handle.ne { top:-8px; right:-8px; cursor:ne-resize; }
+  .qdtf-resize-handle.sw { bottom:-8px; left:-8px; cursor:sw-resize; }
+  .qdtf-resize-handle.se { bottom:-8px; right:-8px; cursor:se-resize; }
+  .qdtf-scale-hint { font-size:12px; color:#888; text-align:center; }
+  .qdtf-modal__hint { font-size:12px; color:#888; margin:0; text-align:center; }
+  .qdtf-modal__controls { padding:22px 20px; display:flex; flex-direction:column; gap:14px; background:#fff; overflow-y:auto; }
+  .qdtf-modal__section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#888; margin:0; }
+  .qdtf-modal__field { display:flex; flex-direction:column; gap:5px; }
+  .qdtf-modal__label { font-size:12px; font-weight:600; color:#444; }
+  .qdtf-modal__spinner { display:flex; align-items:center; border:1.5px solid #D1D9F0; border-radius:8px; overflow:hidden; background:#fff; height:40px; }
+  .qdtf-modal__spin-btn { width:38px; height:100%; background:none; border:none; font-size:20px; font-weight:700; color:#1A56F0; cursor:pointer; flex-shrink:0; transition:background 0.15s; }
+  .qdtf-modal__spin-btn:hover { background:#EEF3FF; }
+  .qdtf-modal__spin-input { flex:1; border:none; border-left:1.5px solid #D1D9F0; border-right:1.5px solid #D1D9F0; text-align:center; font-family:var(--font-heading--family,sans-serif); font-size:15px; font-weight:700; color:#0A0A0A; outline:none; background:#fff; -moz-appearance:textfield; width:0; }
+  .qdtf-modal__spin-input::-webkit-outer-spin-button,.qdtf-modal__spin-input::-webkit-inner-spin-button { -webkit-appearance:none; }
+  .qdtf-modal__lock-row { display:flex; align-items:center; gap:10px; }
+  .qdtf-modal__lock-btn { width:36px; height:36px; border-radius:8px; border:1.5px solid #1A56F0; background:#EEF3FF; color:#1A56F0; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.15s; flex-shrink:0; }
+  .qdtf-modal__lock-btn:hover { background:#DBEAFE; }
+  .qdtf-modal__lock-btn.unlocked { border-color:#CCC; background:#F5F5F5; color:#AAA; }
+  .qdtf-modal__lock-label { font-size:12px; color:#1A56F0; font-weight:500; }
+  .qdtf-modal__lock-label.unlocked { color:#888; }
+  .qdtf-modal__price-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; background:#F7F9FF; border:1px solid #E0E7FF; border-radius:10px; padding:12px; }
+  .qdtf-modal__price-item { display:flex; flex-direction:column; gap:3px; }
+  .qdtf-modal__price-label { font-size:10px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:0.05em; }
+  .qdtf-modal__price-val { font-family:var(--font-heading--family,sans-serif); font-size:18px; font-weight:800; color:#0A0A0A; }
+  .qdtf-modal__price-val.blue { color:#1A56F0; }
+  .qdtf-modal__confirm { width:100%; height:46px; background:#1A56F0 !important; color:#fff !important; border:none; border-radius:10px; font-family:var(--font-heading--family,sans-serif); font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:background 0.2s; box-shadow:0 4px 14px rgba(26,86,240,0.3); margin-top:auto; }
+  .qdtf-modal__confirm:hover { background:#1440C0 !important; }
+  .qdtf-modal__reupload { width:100%; height:38px; background:none; border:1.5px solid #E0E0E0; border-radius:10px; font-size:13px; font-weight:600; color:#888; cursor:pointer; transition:border-color 0.15s,color 0.15s; }
+  .qdtf-modal__reupload:hover { border-color:#1A56F0; color:#1A56F0; }
+  @media screen and (max-width:749px) {
+    .qdtf-modal__body { grid-template-columns:1fr; }
+    .qdtf-modal__preview-wrap { border-right:none; border-bottom:1px solid #eee; min-height:180px; }
+    .qdtf-modal__box { max-height:95vh; }
+  }
+
+</style>
+
+<script>
+(function() {
+
+  var RATE       = {{ rate }};
+  var VARIANT_ID = {{ product.first_available_variant.id }};
+  var IS_UV      = {{ is_uv }};
+  var MODE    = 'custom';
+
+  var popularVariantId    = null;
+  var popularVariantPrice = 0;
+  var popularWidth        = 0;
+  var popularHeight       = 0;
+  var fileUrl             = null;
+
+  var TIERS = [
+    { min: 1,   max: 14,       discount: 0    },
+    { min: 15,  max: 49,       discount: 0.20 },
+    { min: 50,  max: 99,       discount: 0.30 },
+    { min: 100, max: 249,      discount: 0.40 },
+    { min: 250, max: Infinity, discount: 0.50 }
+  ];
+
+  var TIER_LABELS = ['1–14 pcs','15–49','50–99','100–249','250+'];
+
+  function fmt(n) { return '$' + n.toFixed(2); }
+
+  function g(id) { return document.getElementById(id); }
+
+  // ── Core helpers ───────────────────────────────────────────────────────────
+  function getW()   { var el = g('qdtf-width');  return el ? (parseFloat(el.value) || 0) : 0; }
+  function getH()   { var el = g('qdtf-height'); return el ? (parseFloat(el.value) || 0) : 0; }
+  function getQty() { var el = g('qdtf-qty');    return Math.max(1, parseInt((el && el.value) || 1)); }
+
+  function getBase() {
+    if (MODE === 'popular') return popularVariantPrice || 0;
+    return getW() * getH() * RATE;
+  }
+
+  function getTier(qty) {
+    return TIERS.find(function(t) { return qty >= t.min && qty <= t.max; }) || TIERS[0];
+  }
+
+  function getNextTier(qty) {
+    return TIERS.find(function(t) { return t.min > qty; }) || null;
+  }
+
+  // ── Update UI ──────────────────────────────────────────────────────────────
+  function update() {
+    var qty  = getQty();
+    var base = Math.round(getBase() * 10000) / 10000;
+    var tier = getTier(qty);
+    var unit = Math.round(base * (1 - tier.discount) * 10000) / 10000;
+    var tot  = Math.round(unit * qty * 100) / 100;
+
+    // Show calc body if file uploaded
+    if (fileUrl) {
+      var body = g('qdtf-calc-body');
+      if (body && body.style.display !== 'flex') body.style.display = 'flex';
+    }
+
+    // Sq inches — custom tab only
+    if (MODE === 'custom') {
+      var sqEl = g('qdtf-sqin');
+      if (sqEl) sqEl.textContent = Math.round(getW() * getH() * 100) / 100 + ' sq in';
+    }
+
+    // Popular tab — no size selected
+    if (MODE === 'popular' && popularWidth <= 0 && popularVariantPrice <= 0) {
+      if (g('qdtf-unit-price')) g('qdtf-unit-price').textContent = '—';
+      if (g('qdtf-total'))      g('qdtf-total').textContent      = '—';
+      if (g('qdtf-atc-price'))  g('qdtf-atc-price').textContent  = '—';
+      var tb = g('qdtf-discount-tbody');
+      if (tb) tb.innerHTML = TIERS.map(function(t, i) {
+        return '<tr><td>' + TIER_LABELS[i] + '</td><td>—</td><td>' + (t.discount > 0 ? Math.round(t.discount*100)+'% off' : '—') + '</td></tr>';
+      }).join('');
+      if (g('qdtf-next-tier')) g('qdtf-next-tier').textContent = 'Select a size above to see pricing';
+      return;
+    }
+
+    if (g('qdtf-unit-price')) g('qdtf-unit-price').textContent = fmt(unit);
+    if (g('qdtf-total'))      g('qdtf-total').textContent      = fmt(tot);
+    if (g('qdtf-atc-price'))  g('qdtf-atc-price').textContent  = fmt(tot);
+
+    // Discount table
+    var tbody = g('qdtf-discount-tbody');
+    if (tbody) tbody.innerHTML = TIERS.map(function(t, i) {
+      var tp     = Math.round(base * (1 - t.discount) * 10000) / 10000;
+      var active = qty >= t.min && qty <= t.max;
+      var badge  = t.discount > 0
+        ? '<span class="discount-badge">' + Math.round(t.discount*100) + '% off</span>'
+        : '<span style="color:#888">&mdash;</span>';
+      return '<tr' + (active ? ' class="active"' : '') + '>'
+        + '<td>' + TIER_LABELS[i] + '</td>'
+        + '<td>' + fmt(tp) + '</td>'
+        + '<td>' + badge + '</td>'
+        + '</tr>';
+    }).join('');
+
+    // Next tier hint
+    var nextEl = g('qdtf-next-tier');
+    if (nextEl) {
+      var next = getNextTier(qty);
+      nextEl.textContent = next
+        ? 'Add ' + (next.min - qty) + ' more to unlock ' + Math.round(next.discount*100) + '% off savings'
+        : 'You are getting the best price — 50% off!';
+    }
+
+    // Sync Easify dimensions
+    scheduleEasifySync();
+  }
+
+  // ── Inject modal into body ─────────────────────────────────────────────────
+  if (!g('qdtf-preview-modal')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="qdtf-preview-modal" class="qdtf-modal" role="dialog" aria-modal="true">
+        <div class="qdtf-modal__backdrop" id="qdtf-modal-backdrop"></div>
+        <div class="qdtf-modal__box">
+          <div class="qdtf-modal__header">
+            <div class="qdtf-modal__title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A56F0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Preview Your Design
+            </div>
+            <button class="qdtf-modal__close" id="qdtf-modal-close" type="button">✕</button>
+          </div>
+          <div class="qdtf-modal__body">
+            <div class="qdtf-modal__preview-wrap">
+              <div class="qdtf-modal__canvas-wrap">
+                <div class="qdtf-modal__canvas" id="qdtf-canvas">
+                  <img id="qdtf-preview-img" src="" alt="Design preview" class="qdtf-modal__img">
+                  <div class="qdtf-resize-handle nw" data-corner="nw"></div>
+                  <div class="qdtf-resize-handle ne" data-corner="ne"></div>
+                  <div class="qdtf-resize-handle sw" data-corner="sw"></div>
+                  <div class="qdtf-resize-handle se" data-corner="se"></div>
+                  <div class="qdtf-modal__canvas-label">Drag corners to resize · Drag to move</div>
+                </div>
+              </div>
+              <p class="qdtf-scale-hint">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                Drag corners to resize · Aspect ratio locked
+              </p>
+            </div>
+            <div class="qdtf-modal__controls">
+              <p class="qdtf-modal__section-label">Detected Size</p>
+              <div class="qdtf-modal__field">
+                <label class="qdtf-modal__label">Width (in)</label>
+                <div class="qdtf-modal__spinner">
+                  <button type="button" class="qdtf-modal__spin-btn" data-modal-target="qdtf-modal-width" data-dir="-1">−</button>
+                  <input type="number" id="qdtf-modal-width" class="qdtf-modal__spin-input" value="4.00" min="0.5" max="22" step="0.25">
+                  <button type="button" class="qdtf-modal__spin-btn" data-modal-target="qdtf-modal-width" data-dir="1">+</button>
+                </div>
+              </div>
+              <div class="qdtf-modal__lock-row">
+                <button type="button" class="qdtf-modal__lock-btn" id="qdtf-modal-lock">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </button>
+                <span class="qdtf-modal__lock-label" id="qdtf-lock-label">Aspect ratio locked</span>
+              </div>
+              <div class="qdtf-modal__field">
+                <label class="qdtf-modal__label">Height (in)</label>
+                <div class="qdtf-modal__spinner">
+                  <button type="button" class="qdtf-modal__spin-btn" data-modal-target="qdtf-modal-height" data-dir="-1">−</button>
+                  <input type="number" id="qdtf-modal-height" class="qdtf-modal__spin-input" value="4.00" min="0.5" max="500" step="0.25">
+                  <button type="button" class="qdtf-modal__spin-btn" data-modal-target="qdtf-modal-height" data-dir="1">+</button>
+                </div>
+              </div>
+              <div class="qdtf-modal__price-row">
+                <div class="qdtf-modal__price-item"><span class="qdtf-modal__price-label">Sq Inches</span><span class="qdtf-modal__price-val" id="qdtf-modal-sqin">—</span></div>
+                <div class="qdtf-modal__price-item"><span class="qdtf-modal__price-label">Unit Price</span><span class="qdtf-modal__price-val blue" id="qdtf-modal-price">—</span></div>
+              </div>
+              <button type="button" class="qdtf-modal__confirm" id="qdtf-modal-confirm">
+                Confirm Size &amp; Continue
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+              <button type="button" class="qdtf-modal__reupload" id="qdtf-modal-reupload">Upload Different File</button>
+            </div>
+          </div>
+        </div>
+      </div>`
+    );
+  }
+
+    // ── Aspect ratio lock (calculator) ────────────────────────────────────────
+  var calcLocked      = true;
+  var calcAspectRatio = 1;
+
+  // Calculator lock — locked by default, customer can toggle
+  var calcLockBtn = g('qdtf-calc-lock');
+  if (calcLockBtn) {
+    calcLockBtn.addEventListener('click', function() {
+      calcLocked = !calcLocked;
+      this.classList.toggle('unlocked', !calcLocked);
+      this.title = calcLocked ? 'Aspect ratio locked — click to unlock' : 'Aspect ratio unlocked — click to lock';
+      // Update ratio from current values when unlocking
+      if (!calcLocked) {
+        var w = getW(), h = getH();
+        if (h > 0) calcAspectRatio = w / h;
+      }
+    });
+    calcLockBtn.title = 'Aspect ratio locked — click to unlock';
+  }
+
+  // ── Spinners ───────────────────────────────────────────────────────────────
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.qdtf-calc__spin-btn');
+    if (!btn) return;
+    var id  = btn.getAttribute('data-target');
+    var dir = parseFloat(btn.getAttribute('data-dir'));
+    var inp = g(id);
+    if (!inp) return;
+    var step = parseFloat(inp.step) || 1;
+    var min  = parseFloat(inp.min)  || 0;
+    var max  = parseFloat(inp.max)  || Infinity;
+    var val  = Math.round(((parseFloat(inp.value) || 0) + dir * step) * 1000) / 1000;
+    val = Math.max(min, Math.min(max, val));
+    inp.value = id === 'qdtf-qty' ? Math.round(val) : val.toFixed(2);
+
+    // Apply aspect ratio lock on width/height
+    if (calcLocked && id !== 'qdtf-qty') {
+      if (id === 'qdtf-width') {
+        var newH = Math.round(val / calcAspectRatio * 100) / 100;
+        var hEl = g('qdtf-height');
+        if (hEl) hEl.value = Math.max(0.5, newH).toFixed(2);
+      } else if (id === 'qdtf-height') {
+        var newW = Math.round(val * calcAspectRatio * 100) / 100;
+        var wEl = g('qdtf-width');
+        if (wEl) wEl.value = Math.min(22, Math.max(0.5, newW)).toFixed(2);
+      }
+    }
+    update();
+  });
+
+  // Input events on all three fields
+  ['qdtf-width','qdtf-height','qdtf-qty'].forEach(function(id) {
+    document.addEventListener('input', function(e) {
+      if (e.target && e.target.id === id) update();
+    });
+  });
+
+  // ── Tabs ───────────────────────────────────────────────────────────────────
+  var t1 = g('qdtf-tab1'), t2 = g('qdtf-tab2');
+  if (t1) t1.addEventListener('change', function() {
+    MODE = 'custom';
+    g('qdtf-panel-custom').style.display  = '';
+    g('qdtf-panel-popular').style.display = 'none';
+    // Reset popular state so it doesn't bleed into custom calculations
+    popularVariantId    = null;
+    popularVariantPrice = 0;
+    popularWidth        = 0;
+    popularHeight       = 0;
+    update();
+  });
+  if (t2) t2.addEventListener('change', function() {
+    MODE = 'popular';
+    g('qdtf-panel-custom').style.display  = 'none';
+    g('qdtf-panel-popular').style.display = '';
+    // Reset popular state — force user to pick a size fresh
+    popularVariantId    = null;
+    popularVariantPrice = 0;
+    popularWidth        = 0;
+    popularHeight       = 0;
+    var popEl = g('qdtf-popular-size');
+    if (popEl) popEl.selectedIndex = 0;
+    var adj = g('qdtf-popular-adj');
+    if (adj) adj.style.display = 'none';
+    if (g('qdtf-sqin')) g('qdtf-sqin').textContent = '';
+    update();
+  });
+
+  // ── Popular size dropdown ─────────────────────────────────────────────────
+  var popSel = g('qdtf-popular-size');
+  if (popSel) popSel.addEventListener('change', function() {
+    var opt = this.options[this.selectedIndex];
+
+    popularVariantId    = this.value || null;
+    popularVariantPrice = parseFloat(opt && opt.getAttribute('data-price')) || 0;
+    popularWidth        = parseFloat(opt && opt.getAttribute('data-w')) || 0;
+    popularHeight       = parseFloat(opt && opt.getAttribute('data-h')) || 0;
+
+    var adj = g('qdtf-popular-adj');
+    if (popularVariantId && popularWidth > 0 && popularHeight > 0) {
+      if (adj) adj.style.display = 'block';
+      updatePopMaxSize(popularWidth, popularHeight);
+      setProductVariant(popularVariantId);
+      setEasifyDimensions(popularWidth, popularHeight);
+      setEasifyQty(getQty());
+    } else {
+      if (adj) adj.style.display = 'none';
+    }
+
+    update();
+  });
+
+  // Calculate max print size of uploaded image within variant dimensions
+  function updatePopMaxSize(variantW, variantH) {
+    if (!fileUrl || variantW <= 0 || variantH <= 0) {
+      // No image uploaded — just show variant dimensions as max
+      var mw = g('qdtf-pop-maxw'), mh = g('qdtf-pop-maxh'), msq = g('qdtf-pop-sqin');
+      if (mw) mw.textContent = variantW.toFixed(2);
+      if (mh) mh.textContent = variantH.toFixed(2);
+      if (msq) msq.textContent = Math.round(variantW * variantH * 100) / 100;
+      return;
+    }
+
+    // Use image natural dimensions to compute max size within variant box
+    var img = new Image();
+    img.onload = function() {
+      var imgRatio = img.naturalWidth / img.naturalHeight;
+      var varRatio = variantW / variantH;
+      var maxW, maxH;
+
+      if (imgRatio >= varRatio) {
+        // Image is wider — constrain by width
+        maxW = variantW;
+        maxH = Math.round((variantW / imgRatio) * 100) / 100;
+      } else {
+        // Image is taller — constrain by height
+        maxH = variantH;
+        maxW = Math.round((variantH * imgRatio) * 100) / 100;
+      }
+
+      var sqin = Math.round(maxW * maxH * 100) / 100;
+      var mw = g('qdtf-pop-maxw'), mh = g('qdtf-pop-maxh'), msq = g('qdtf-pop-sqin');
+      if (mw) mw.textContent = maxW.toFixed(2);
+      if (mh) mh.textContent = maxH.toFixed(2);
+      if (msq) msq.textContent = sqin;
+    };
+    img.src = fileUrl + '-/preview/400x400/';
+  }
+
+  // ── Uploadcare ─────────────────────────────────────────────────────────────
+  function onUploadComplete(info) {
+    fileUrl = info.cdnUrl;
+    if (g('qdtf-filename')) g('qdtf-filename').textContent = info.name || 'design.png';
+
+    // Set thumbnail
+    var thumb = g('qdtf-thumb');
+    if (thumb) {
+      thumb.src = info.cdnUrl + '-/preview/200x200/';
+      thumb.onerror = function() { thumb.src = info.cdnUrl; };
+    }
+
+    // Show done state, hide idle state
+    if (g('qdtf-upload-idle')) g('qdtf-upload-idle').style.display = 'none';
+    if (g('qdtf-upload-done')) g('qdtf-upload-done').style.setProperty('display', 'flex', 'important');
+
+    // Show done state
+    if (g('qdtf-upload-idle')) g('qdtf-upload-idle').style.display = 'none';
+    var donEl = g('qdtf-upload-done'); if (donEl) donEl.style.setProperty('display', 'flex', 'important');
+
+    // Always show calc body so customer isn't blocked
+    var calcBody = g('qdtf-calc-body');
+    if (calcBody) { calcBody.removeAttribute('style'); calcBody.style.setProperty('display', 'flex', 'important'); }
+
+    // Detect image dimensions then open preview modal
+    var img = new Image();
+    img.onload = function() {
+      var wIn = Math.round((img.naturalWidth  / 300) * 100) / 100;
+      var hIn = Math.round((img.naturalHeight / 300) * 100) / 100;
+      wIn = Math.min(wIn, 22);
+      // Set dimensions in calculator immediately
+      if (g('qdtf-width'))  g('qdtf-width').value  = wIn.toFixed(2);
+      if (g('qdtf-height')) g('qdtf-height').value = hIn.toFixed(2);
+      update();
+      // Store aspect ratio
+      if (hIn > 0) {
+        calcAspectRatio = wIn / hIn;
+        modalAspectRatio = wIn / hIn;
+      }
+      // Open preview modal for customer to confirm/adjust size
+      try { openModal(info.cdnUrl, wIn, hIn); }
+      catch(err) { console.warn('[QDTF] Modal open failed:', err); }
+    };
+    img.src = info.cdnUrl + '-/preview/800x800/';
+  }
+
+  function onUploadCleared() {
+    fileUrl = null;
+    if (g('qdtf-upload-idle')) g('qdtf-upload-idle').style.display = '';
+    if (g('qdtf-upload-done')) g('qdtf-upload-done').style.display = 'none';
+    if (g('qdtf-calc-body'))   g('qdtf-calc-body').style.display = 'none';
+    var thumb = g('qdtf-thumb');
+    if (thumb) thumb.src = '';
+  }
+
+  // ── Remove / redetect ──────────────────────────────────────────────────────
+  document.addEventListener('click', function(e) {
+    if (!e.target || typeof e.target.closest !== 'function') return;
+    // Open preview modal from thumbnail button
+    if (e.target.closest('#qdtf-open-preview') && fileUrl) {
+      var w = getW(), h = getH();
+      openModal(fileUrl, w > 0 ? w : 4, h > 0 ? h : 4);
+      return;
+    }
+
+    if (e.target.closest('#qdtf-remove-file')) {
+      fileUrl = null;
+      var w = window.uploadcare && uploadcare.Widget(g('qdtf-uc-input'));
+      if (w) w.value(null);
+      onUploadCleared();
+    }
+    if (e.target.closest('#qdtf-redetect') && fileUrl) {
+      var img = new Image();
+      img.onload = function() {
+        var wIn = Math.round((img.naturalWidth  / 300) * 100) / 100;
+        var hIn = Math.round((img.naturalHeight / 300) * 100) / 100;
+        if (g('qdtf-width'))  g('qdtf-width').value  = Math.min(wIn, 22).toFixed(2);
+        if (g('qdtf-height')) g('qdtf-height').value = hIn.toFixed(2);
+        update();
+      };
+      img.src = fileUrl + '-/preview/800x800/';
+    }
+  });
+
+  // ── Add to cart + open drawer helper ─────────────────────────────────────
+  var cartAddedMode = null;
+
+  function openCartDrawer() {
+    var drawer = document.querySelector('cart-drawer-component');
+
+    // Use confirmed section ID for cart drawer
+    var sectionEl = drawer && drawer.closest('[id^="shopify-section-"]');
+    var sectionId = sectionEl
+      ? sectionEl.id.replace('shopify-section-', '')
+      : 'sections--19394943975537__header_section';
+
+    fetch('/cart?sections=' + sectionId)
+      .then(function(r) { return r.json(); })
+      .then(function(sections) {
+        var parser = new DOMParser();
+        var rendered = false;
+
+        // Try each section key for cart drawer content
+        Object.keys(sections).forEach(function(key) {
+          if (rendered) return;
+          var doc = parser.parseFromString(sections[key], 'text/html');
+          var newDrawer = doc.querySelector('cart-drawer-component');
+          if (newDrawer && drawer) {
+            drawer.innerHTML = newDrawer.innerHTML;
+            rendered = true;
+          }
+          // Update cart icon bubble
+          var newBubble = doc.querySelector('cart-icon-bubble');
+          var existingBubble = document.querySelector('cart-icon-bubble');
+          if (newBubble && existingBubble) {
+            existingBubble.innerHTML = newBubble.innerHTML;
+          }
+        });
+
+        // Open drawer
+        var d = document.querySelector('cart-drawer-component');
+        if (d) {
+          if (typeof d.open === 'function') d.open();
+          else {
+            d.setAttribute('open', 'true');
+            document.dispatchEvent(new CustomEvent('dispatch:cart-drawer:open', { bubbles: true }));
+          }
+        }
+      })
+      .catch(function() {
+        // Fallback: trigger cart icon click
+        var cartIcon = document.querySelector('a[href="/cart"], .header-actions__action[href*="cart"]');
+        if (cartIcon) cartIcon.click();
+      });
+  }
+
+  function addToCartAndOpen(variantId, qty, properties, btn, orig) {
+    if (cartAddedMode && cartAddedMode !== MODE) {
+      if (!window.confirm('You already added a ' + cartAddedMode + ' size to cart from this product. Add another?')) {
+        if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+        return;
+      }
+    }
+    fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: variantId, quantity: qty, properties: properties })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function() {
+      cartAddedMode = MODE;
+      if (btn) { btn.disabled = false; btn.innerHTML = '✓ Added!'; btn.style.background = '#16A34A'; }
+      fetch('/cart.js').then(function(r) { return r.json(); }).then(function(cart) {
+        document.dispatchEvent(new CustomEvent('cart:add', { bubbles: true, detail: { resource: cart } }));
+        var d = document.querySelector('cart-drawer-component');
+        if (d && d.open) d.open();
+      });
+      setTimeout(function() {
+        if (btn) { btn.style.background = ''; btn.innerHTML = orig; }
+      }, 2000);
+    })
+    .catch(function() {
+      if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+      alert('Error adding to cart. Try again.');
+    });
+  }
+
+  // ── Add to Cart ────────────────────────────────────────────────────────────
+  var atcBtn = g('qdtf-atc-btn');
+  if (atcBtn) atcBtn.addEventListener('click', function() {
+    var btn  = this;
+    var qty  = getQty();
+    var orig = btn.innerHTML;
+    var w    = MODE === 'popular' ? popularWidth  : getW();
+    var h    = MODE === 'popular' ? popularHeight : getH();
+
+    if (!fileUrl) {
+      alert('Please upload your design first.');
+      return;
+    }
+
+    if (MODE === 'popular' && !popularVariantId) {
+      alert('Please select a popular size first.');
+      return;
+    }
+
+    if (w <= 0 || h <= 0) {
+      alert('Please enter a valid width and height.');
+      return;
+    }
+
+    if (MODE === 'popular') setProductVariant(popularVariantId);
+
+    setEasifyDimensions(w, h);
+    setEasifyQty(qty);
+    syncLineItemProperties();
+
+    btn.disabled = true;
+    btn.innerHTML = 'Adding...';
+
+    // Easify updates React state asynchronously; allow it to settle,
+    // then submit the real product form (never the sticky cart button).
+    setTimeout(function() {
+      var submitted = submitEasifyProductForm();
+
+      if (!submitted) {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+        alert('Could not find the product form. Please refresh and try again.');
+        return;
+      }
+
+      setTimeout(function() {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }, 1800);
+    }, 350);
+
+    return; // Legacy Netlify code below remains disabled during migration
+
+    // ── POPULAR SIZES ───────────────────────────────────────────────────
+    if (MODE === 'popular') {
+      if (!popularVariantId) { alert('Please select a size first.'); return; }
+
+      var sizeLabel = (g('qdtf-popular-size').options[g('qdtf-popular-size').selectedIndex] || {}).text || '';
+
+      if (tier.discount === 0) {
+        // Base price — native cart
+        btn.disabled = true; btn.innerHTML = 'Adding...';
+        var mw = parseFloat((g('qdtf-pop-maxw') && g('qdtf-pop-maxw').textContent) || popularWidth) || popularWidth;
+        var mh = parseFloat((g('qdtf-pop-maxh') && g('qdtf-pop-maxh').textContent) || popularHeight) || popularHeight;
+        var actualSize = mw > 0 ? (mw.toFixed(2) + '" x ' + mh.toFixed(2) + '"') : sizeLabel;
+        var props = { 'Size': sizeLabel, 'Actual Print Size': actualSize };
+        if (fileUrl) props['Design File'] = fileUrl;
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: popularVariantId, quantity: qty, properties: props })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function() {
+          btn.disabled = false; btn.innerHTML = '✓ Added!'; btn.style.background = '#16A34A';
+          // Wait briefly for Shopify cart to update before opening drawer
+          setTimeout(function() {
+            fetch('/cart.js').then(function(r) { return r.json(); }).then(function(cart) {
+              // Dispatch Horizon cart update event with fresh cart data
+              document.dispatchEvent(new CustomEvent('cart:add', {
+                bubbles: true,
+                detail: { resource: cart }
+              }));
+
+              // Update cart count badge
+              document.querySelectorAll('cart-icon-bubble').forEach(function(el) {
+                var countEl = el.querySelector('[aria-label]') || el;
+                countEl.setAttribute('aria-label', cart.item_count + ' items');
+              });
+
+              // Open drawer after cart is confirmed updated
+              setTimeout(function() {
+                var drawer = document.querySelector('cart-drawer-component');
+                if (drawer && typeof drawer.open === 'function') {
+                  drawer.open();
+                } else {
+                  // Fallback: click the cart icon
+                  var cartBtn = document.querySelector('.header-actions__action[href*="cart"], a[href="/cart"]');
+                  if (cartBtn) cartBtn.click();
+                }
+              }, 300);
+            });
+          }, 500);
+          setTimeout(function() { btn.style.background = ''; btn.innerHTML = orig; }, 2000);
+        })
+        .catch(function() { btn.disabled = false; btn.innerHTML = orig; alert('Error. Try again.'); });
+
+      } else {
+        // Discounted qty (15+) — create draft order then add placeholder to cart
+        if (popularWidth <= 0 || popularHeight <= 0) { alert('Please select a size first.'); return; }
+        btn.disabled = true; btn.innerHTML = 'Processing...';
+        fetch('https://quickdtf-pricing-engine.netlify.app/.netlify/functions/create-pricing-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            designs: [{
+              widthIn: popularWidth,
+              heightIn: popularHeight,
+              qty: qty,
+              productType: IS_UV ? 'uv_dtf' : 'dtf',
+              fileUrl: fileUrl || '',
+              note: (function() {
+            var mw = parseFloat((g('qdtf-pop-maxw') && g('qdtf-pop-maxw').textContent) || popularWidth);
+            var mh = parseFloat((g('qdtf-pop-maxh') && g('qdtf-pop-maxh').textContent) || popularHeight);
+            return mw.toFixed(2) + '"' + ' x ' + mh.toFixed(2) + '"' + ' x ' + qty + ' pcs - ' + Math.round(tier.discount * 100) + '% off';
+          })()
+            }]
+          })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (!d.checkoutUrl) throw new Error(d.error || 'Failed');
+          var props = {
+            'Size': sizeLabel,
+            'Quantity': String(qty),
+            'Unit Price': fmt(unit) + '/piece',
+            'Discount': Math.round(tier.discount * 100) + '% off',
+            'Total': fmt(tot),
+            '_draft_checkout_url': d.checkoutUrl,
+            '_draft_order_id': String(d.draftOrderId || ''),
+            '_design_file': fileUrl || ''
+          };
+          if (fileUrl) props['Design File'] = fileUrl;
+          return fetch('/cart/add.js', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: VARIANT_ID, quantity: 1, properties: props })
+          });
+        })
+        .then(function() {
+          btn.disabled = false; btn.innerHTML = '✓ Added!'; btn.style.background = '#16A34A';
+          // Enable checkout button
+          var checkoutBtn = g('qdtf-checkout-btn');
+          if (checkoutBtn) {
+            checkoutBtn.disabled = false;
+            checkoutBtn.dataset.checkoutUrl = ''; // will be set per flow
+          }
+          openCartDrawer();
+          setTimeout(function() { btn.style.background = ''; btn.innerHTML = orig; }, 2000);
+        })
+        .catch(function() {
+          btn.disabled = false; btn.innerHTML = orig;
+          alert('Something went wrong. Please try again.');
+        });
+      }
+      return;
+    }
+    // -- CUSTOM SIZE -- create draft order then add placeholder to cart
+    var w = getW(), h = getH();
+    if (w <= 0 || h <= 0) { alert('Please enter width and height.'); return; }
+    btn.disabled = true; btn.innerHTML = 'Processing...';
+    fetch('https://quickdtf-pricing-engine.netlify.app/.netlify/functions/create-pricing-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        designs: [{
+          widthIn: w,
+          heightIn: h,
+          qty: qty,
+          productType: IS_UV ? 'uv_dtf' : 'dtf',
+          fileUrl: fileUrl || '',
+          note: w.toFixed(2) + '" x ' + h.toFixed(2) + '" (Custom)'
+        }]
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d.checkoutUrl) throw new Error(d.error || 'Failed');
+      var props = {
+        'Size': w.toFixed(2) + '" x ' + h.toFixed(2) + '" (Custom)',
+        'Quantity': String(qty),
+        'Unit Price': fmt(unit) + '/piece',
+        'Total': fmt(tot),
+        '_draft_checkout_url': d.checkoutUrl,
+        '_draft_order_id': String(d.draftOrderId || ''),
+        '_design_file': fileUrl || ''
+      };
+      if (tier.discount > 0) props['Discount'] = Math.round(tier.discount * 100) + '% off';
+      if (fileUrl) props['Design File'] = fileUrl;
+      return fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: VARIANT_ID, quantity: 1, properties: props })
+      });
+    })
+    .then(function() {
+      btn.disabled = false; btn.innerHTML = '✓ Added!'; btn.style.background = '#16A34A';
+      openCartDrawer();
+      setTimeout(function() { btn.style.background = ''; btn.innerHTML = orig; }, 2000);
+    })
+    .catch(function() {
+      btn.disabled = false; btn.innerHTML = orig;
+      alert('Something went wrong. Please try again.');
+    });
+  });
+
+  // ── Init Uploadcare ────────────────────────────────────────────────────────
+  function initUC() {
+    if (!window.uploadcare) return false;
+    try {
+      // Get the widget instance Uploadcare already rendered for the input
+      // Using '#qdtf-uc-input' selector to match the exact input
+      var widget = uploadcare.Widget('#qdtf-uc-input');
+      if (!widget) return false;
+
+      // Check current value (in case file already set)
+      var currentFile = widget.value();
+      if (currentFile) {
+        currentFile.done(function(info) { onUploadComplete(info); });
+      }
+
+      widget.onChange(function(file) {
+        if (file) {
+          file.done(function(info) { onUploadComplete(info); });
+        } else {
+          onUploadCleared();
+        }
+      });
+
+      console.log('[QDTF] Uploadcare connected ✓');
+      return true;
+    } catch(e) {
+      console.warn('[QDTF] initUC failed:', e);
+      return false;
+    }
+  }
+
+  // Retry until uploadcare is ready
+  if (!initUC()) {
+    var _t = setInterval(function() {
+      if (initUC()) clearInterval(_t);
+    }, 200);
+    setTimeout(function() { clearInterval(_t); }, 15000);
+  }
+
+
+  // ── Checkout button ───────────────────────────────────────────────────────
+  var checkoutBtn = g('qdtf-checkout-btn');
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', function() {
+      // Check cart for draft order URL
+      fetch('/cart.js')
+        .then(function(r) { return r.json(); })
+        .then(function(cart) {
+          var draftUrl = null;
+          (cart.items || []).forEach(function(item) {
+            if (item.properties && item.properties['_draft_checkout_url']) {
+              draftUrl = item.properties['_draft_checkout_url'];
+            }
+          });
+          window.location.href = draftUrl || '/checkout';
+        });
+    });
+  }
+
+  // ── Easify Bridge ─────────────────────────────────────────────────────────
+  function getEasifyInputs() {
+    var dims = document.querySelectorAll('.po-dimension-inputField');
+
+    var qty = document.querySelector(
+      '.po-quantity-inputField, ' +
+      'input[class*="quantity"][class*="po-"], ' +
+      '.easify input[type="number"]:not(.po-dimension-inputField), ' +
+      '.easify-product-options input[type="number"]:not(.po-dimension-inputField)'
+    );
+
+    return {
+      w: dims[0] || null,
+      h: dims[1] || null,
+      qty: qty || null
+    };
+  }
+
+  function setNativeVal(el, val) {
+    if (!el) return false;
+
+    var proto = el.tagName === 'SELECT'
+      ? window.HTMLSelectElement.prototype
+      : window.HTMLInputElement.prototype;
+
+    var descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
+    if (descriptor && descriptor.set) descriptor.set.call(el, String(val));
+    else el.value = String(val);
+
+    el.dispatchEvent(new Event('input',  { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    el.dispatchEvent(new Event('blur',   { bubbles: true }));
+    return true;
+  }
+
+  function setEasifyDimensions(w, h) {
+    var inputs = getEasifyInputs();
+    if (!inputs.w || !inputs.h) {
+      console.warn('[QDTF] Easify dimension inputs were not found');
+      return false;
+    }
+
+    // Send the REAL dimensions. Easify Premium Quantity discounts must
+    // apply the tier discount; do not fake discounts by changing width.
+    setNativeVal(inputs.w, Math.round(w * 10000) / 10000);
+    setNativeVal(inputs.h, Math.round(h * 10000) / 10000);
+    return true;
+  }
+
+  function setEasifyQty(qty) {
+    var inputs = getEasifyInputs();
+
+    if (inputs.qty) setNativeVal(inputs.qty, qty);
+
+    // Keep Shopify's actual line quantity synchronized as well.
+    document.querySelectorAll('form[action*="/cart/add"] input[name="quantity"]').forEach(function(input) {
+      if (!input.closest('.qdtf-calc')) setNativeVal(input, qty);
+    });
+  }
+
+  function getProductForm() {
+    var forms = Array.prototype.slice.call(
+      document.querySelectorAll('form[action*="/cart/add"]')
+    );
+
+    return forms.find(function(form) {
+      return !form.closest('sticky-add-to-cart') &&
+             !form.closest('.sticky-add-to-cart') &&
+             !!form.querySelector('input[name="id"]');
+    }) || forms[0] || null;
+  }
+
+  function setProductVariant(variantId) {
+    if (!variantId) return;
+
+    var form = getProductForm();
+    if (!form) return;
+
+    var variantInput = form.querySelector('input[name="id"], select[name="id"]');
+    if (variantInput) setNativeVal(variantInput, variantId);
+
+    var nativePicker = document.querySelector('variant-picker select, select[name="id"]');
+    if (nativePicker && nativePicker !== variantInput) {
+      setNativeVal(nativePicker, variantId);
+    }
+  }
+
+  function syncLineItemProperties() {
+    var form = getProductForm();
+    if (!form) return false;
+
+    var width  = MODE === 'popular' ? popularWidth  : getW();
+    var height = MODE === 'popular' ? popularHeight : getH();
+
+    var properties = {
+      'Design File': fileUrl || '',
+      'Width': width > 0 ? width.toFixed(2) + ' in' : '',
+      'Height': height > 0 ? height.toFixed(2) + ' in' : '',
+      'Print Size': width > 0 && height > 0
+        ? width.toFixed(2) + '" × ' + height.toFixed(2) + '"'
+        : '',
+      'Size Type': MODE === 'popular' ? 'Popular Size' : 'Custom Size'
+    };
+
+    Object.keys(properties).forEach(function(label) {
+      var name = 'properties[' + label + ']';
+      var input = form.querySelector('input[name="' + name.replace(/"/g, '\\"') + '"]');
+
+      if (!input) {
+        input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        form.appendChild(input);
+      }
+
+      input.value = properties[label];
+    });
+
+    return true;
+  }
+
+  function submitEasifyProductForm() {
+    var form = getProductForm();
+    if (!form) {
+      console.warn('[QDTF] Main product form was not found');
+      return false;
+    }
+
+    syncLineItemProperties();
+
+    var submit = form.querySelector(
+      'button[type="submit"]:not(.sticky-add-to-cart__button), ' +
+      'button[name="add"]:not(.sticky-add-to-cart__button), ' +
+      'input[type="submit"]'
+    );
+
+    console.log('[QDTF] Submitting native product form');
+
+    if (typeof form.requestSubmit === 'function') {
+      form.requestSubmit(submit || undefined);
+    } else if (submit) {
+      submit.click();
+    } else {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    }
+
+    return true;
+  }
+
+  // Sync Easify whenever our W/H/qty changes
+  var _easifySyncTimer = null;
+  function scheduleEasifySync() {
+    clearTimeout(_easifySyncTimer);
+    _easifySyncTimer = setTimeout(function() {
+      var w = MODE === 'popular' ? popularWidth : getW();
+      var h = MODE === 'popular' ? popularHeight : getH();
+      var qty = getQty();
+      if (w > 0 && h > 0) setEasifyDimensions(w, h);
+      setEasifyQty(qty);
+    }, 50);
+  }
+
+  // Initial render
+  update();
+  
+  // Sync Easify on first load with default values
+  setTimeout(function() {
+    var w = getW(), h = getH();
+    if (w > 0 && h > 0) setEasifyDimensions(w, h);
+  }, 500);
+
+  // ── PREVIEW MODAL ──────────────────────────────────────────────────────────
+  var modalAspectRatio = 1; // W/H ratio
+  var modalLocked      = true;
+  var MODAL_RATE       = RATE;
+
+  function openModal(cdnUrl, wIn, hIn) {
+    var modal = g('qdtf-preview-modal');
+    if (!modal) return;
+
+    var img = g('qdtf-preview-img');
+    if (img) img.src = cdnUrl + '-/preview/1200x1200/';
+
+    if (wIn > 0 && hIn > 0) modalAspectRatio = wIn / hIn;
+    setModalW(wIn);
+    setModalH(hIn);
+    updateModalPrice();
+
+    modal.style.display = 'flex';
+    modal.classList.add('qdtf-modal--open');
+    document.body.style.overflow = 'hidden';
+
+    // Init free transform after image loads
+    var previewImg = g('qdtf-preview-img');
+    if (previewImg) {
+      var initFT = function() { initFreeTransform(wIn, hIn); };
+      if (previewImg.complete) initFT();
+      else previewImg.onload = initFT;
+    }
+  }
+
+  // ── Free Transform ──────────────────────────────────────────────────────────
+  function initFreeTransform(wIn, hIn) {
+    var canvas  = g('qdtf-canvas');
+    var img     = g('qdtf-preview-img');
+    if (!canvas || !img) return;
+
+    // Set initial size based on aspect ratio
+    var wrap    = canvas.parentElement;
+    var maxW    = wrap.clientWidth  * 0.7;
+    var maxH    = wrap.clientHeight * 0.7;
+    var ratio   = modalAspectRatio || (wIn / hIn) || 1;
+    var initW   = Math.min(maxW, maxH * ratio);
+    var initH   = initW / ratio;
+
+    canvas.style.width  = Math.round(initW) + 'px';
+    canvas.style.height = Math.round(initH) + 'px';
+    img.style.width     = '100%';
+    img.style.height    = '100%';
+
+    // Drag to move
+    var dragStart = null;
+    var canvasPos = { x: 0, y: 0 };
+    canvas.style.transform = 'translate(0px, 0px)';
+
+    canvas.addEventListener('mousedown', function(e) {
+      if (e.target.classList.contains('qdtf-resize-handle')) return;
+      dragStart = { mx: e.clientX, my: e.clientY, cx: canvasPos.x, cy: canvasPos.y };
+      canvas.classList.add('dragging');
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (!dragStart) return;
+      canvasPos.x = dragStart.cx + (e.clientX - dragStart.mx);
+      canvasPos.y = dragStart.cy + (e.clientY - dragStart.my);
+      canvas.style.transform = 'translate(' + canvasPos.x + 'px,' + canvasPos.y + 'px)';
+    });
+
+    document.addEventListener('mouseup', function() {
+      dragStart = null;
+      canvas.classList.remove('dragging');
+    });
+
+    // Corner resize
+    var handles = canvas.querySelectorAll('.qdtf-resize-handle');
+    handles.forEach(function(handle) {
+      handle.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        var startX  = e.clientX;
+        var startW  = canvas.offsetWidth;
+        var corner  = handle.getAttribute('data-corner');
+        var isLeft  = corner === 'nw' || corner === 'sw';
+
+        function onMove(ev) {
+          var dx   = ev.clientX - startX;
+          var newW = Math.max(80, isLeft ? startW - dx : startW + dx);
+          var newH = newW / modalAspectRatio;
+          canvas.style.width  = Math.round(newW) + 'px';
+          canvas.style.height = Math.round(newH) + 'px';
+
+          // Update dimension inputs from pixel size
+          // 1 inch = some pixel count — we scale relative to original
+          var scale  = newW / initW;
+          var nwIn   = Math.round(wIn * scale * 100) / 100;
+          var nhIn   = Math.round(hIn * scale * 100) / 100;
+          nwIn = Math.min(22, Math.max(0.25, nwIn));
+          nhIn = Math.max(0.25, nhIn);
+          setModalW(nwIn);
+          setModalH(nhIn);
+          updateModalPrice();
+        }
+
+        function onUp() {
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+        }
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
+    });
+
+    // Touch support for mobile
+    canvas.addEventListener('touchstart', function(e) {
+      if (e.target.classList.contains('qdtf-resize-handle')) return;
+      var t = e.touches[0];
+      dragStart = { mx: t.clientX, my: t.clientY, cx: canvasPos.x, cy: canvasPos.y };
+      e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener('touchmove', function(e) {
+      if (!dragStart) return;
+      var t = e.touches[0];
+      canvasPos.x = dragStart.cx + (t.clientX - dragStart.mx);
+      canvasPos.y = dragStart.cy + (t.clientY - dragStart.my);
+      canvas.style.transform = 'translate(' + canvasPos.x + 'px,' + canvasPos.y + 'px)';
+    }, { passive: false });
+
+    document.addEventListener('touchend', function() { dragStart = null; });
+  }
+
+  function closeModal() {
+    var modal = g('qdtf-preview-modal');
+    if (modal) {
+      modal.style.display = 'none';
+      modal.classList.remove('qdtf-modal--open');
+    }
+    document.body.style.overflow = '';
+  }
+
+  function setModalW(val) {
+    var el = g('qdtf-modal-width');
+    if (el) el.value = parseFloat(val).toFixed(2);
+  }
+
+  function setModalH(val) {
+    var el = g('qdtf-modal-height');
+    if (el) el.value = parseFloat(val).toFixed(2);
+  }
+
+  function getModalW() { return parseFloat((g('qdtf-modal-width') && g('qdtf-modal-width').value) || 0); }
+  function getModalH() { return parseFloat((g('qdtf-modal-height') && g('qdtf-modal-height').value) || 0); }
+
+  function updateModalPrice() {
+    var w    = getModalW();
+    var h    = getModalH();
+    var sqin = Math.round(w * h * 100) / 100;
+    var price = Math.round(w * h * MODAL_RATE * 10000) / 10000;
+    if (g('qdtf-modal-sqin'))  g('qdtf-modal-sqin').textContent  = sqin + ' sq in';
+    if (g('qdtf-modal-price')) g('qdtf-modal-price').textContent = '$' + price.toFixed(4);
+  }
+
+  // Lock button toggle
+  // Modal lock — locked by default, customer can toggle
+  var lockBtn = g('qdtf-modal-lock');
+  if (lockBtn) {
+    lockBtn.addEventListener('click', function() {
+      modalLocked = !modalLocked;
+      this.classList.toggle('unlocked', !modalLocked);
+      var label = g('qdtf-lock-label');
+      if (label) {
+        label.textContent = modalLocked ? 'Aspect ratio locked' : 'Aspect ratio unlocked';
+        label.classList.toggle('unlocked', !modalLocked);
+      }
+      if (!modalLocked) {
+        var w = getModalW(), h = getModalH();
+        if (h > 0) modalAspectRatio = w / h;
+      }
+    });
+    lockBtn.title = 'Aspect ratio locked — click to unlock';
+  }
+
+  // Modal spinner buttons
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.qdtf-modal__spin-btn');
+    if (!btn) return;
+    var id  = btn.getAttribute('data-modal-target');
+    var dir = parseFloat(btn.getAttribute('data-dir'));
+    var inp = g(id);
+    if (!inp) return;
+    var step = parseFloat(inp.step) || 0.25;
+    var min  = parseFloat(inp.min)  || 0.5;
+    var max  = parseFloat(inp.max)  || Infinity;
+    var val  = Math.round(((parseFloat(inp.value) || 0) + dir * step) * 100) / 100;
+    val = Math.max(min, Math.min(max, val));
+    inp.value = val.toFixed(2);
+
+    // Apply aspect ratio lock
+    if (modalLocked) {
+      if (id === 'qdtf-modal-width') {
+        var newH = Math.round((val / modalAspectRatio) * 100) / 100;
+        setModalH(Math.max(0.5, newH));
+      } else {
+        var newW = Math.round((val * modalAspectRatio) * 100) / 100;
+        setModalW(Math.min(22, Math.max(0.5, newW)));
+      }
+    }
+    updateModalPrice();
+  });
+
+  // Manual input change with aspect ratio lock
+  ['qdtf-modal-width', 'qdtf-modal-height'].forEach(function(id) {
+    var inp = g(id);
+    if (!inp) return;
+    inp.addEventListener('change', function() {
+      if (modalLocked) {
+        var val = parseFloat(this.value) || 0;
+        if (id === 'qdtf-modal-width') {
+          setModalH(Math.max(0.5, Math.round(val / modalAspectRatio * 100) / 100));
+        } else {
+          setModalW(Math.min(22, Math.max(0.5, Math.round(val * modalAspectRatio * 100) / 100)));
+        }
+      }
+      updateModalPrice();
+    });
+  });
+
+  // Close on backdrop or close button
+  var backdrop = g('qdtf-modal-backdrop');
+  var closeBtn = g('qdtf-modal-close');
+  if (backdrop) backdrop.addEventListener('click', closeModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+  // ESC key closes modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Confirm button — apply dimensions to calculator and close
+  var confirmBtn = g('qdtf-modal-confirm');
+  if (confirmBtn) confirmBtn.addEventListener('click', function() {
+    var w = getModalW();
+    var h = getModalH();
+    if (g('qdtf-width'))  g('qdtf-width').value  = w.toFixed(2);
+    if (g('qdtf-height')) g('qdtf-height').value = h.toFixed(2);
+    closeModal();
+    // Show calculator body and update
+    if (g('qdtf-calc-body')) g('qdtf-calc-body').style.display = 'flex';
+    update();
+  });
+
+  // Re-upload button
+  var reuploadBtn = g('qdtf-modal-reupload');
+  if (reuploadBtn) reuploadBtn.addEventListener('click', function() {
+    closeModal();
+    // Trigger uploadcare widget
+    var inp = g('qdtf-uc-input');
+    if (window.uploadcare && inp) {
+      var widget = uploadcare.Widget(inp);
+      if (widget) widget.openDialog();
+    }
+  });
+
+})();
+</script>
+
+
+{% endif %}
+{% schema %}
+{
+  "name": "QuickDTF Size Calculator",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Place this block on the DTF Transfers by Size and UV DTF product pages. Product type is auto-detected from product tags (uv-dtf or uv-by-size = UV DTF rate, otherwise DTF rate)."
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    }
+  ],
+  "presets": [
+    {
+      "name": "QuickDTF Size Calculator",
+      "category": "t:categories.product"
+    }
+  ]
+}
+{% endschema %}
+  
